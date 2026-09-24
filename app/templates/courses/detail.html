@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block titre %}Liste du {{ liste.Date_edition }} - Operation_ninja{% endblock %}
+{% block code_ecran %}LIC-4.3{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>Liste de courses</h1>
+    <a class="lien" href="{{ url_for('courses.liste') }}">Retour aux listes</a>
+</div>
+<p class="aide">Editee le {{ liste.Date_edition }} - {{ nb_lignes }} article(s)
+   repartis sur {{ groupes | length }} distributeur(s)</p>
+
+{% if groupes %}
+{# Un formulaire par distributeur : on enregistre le rayon qu'on vient de
+   corriger sans renvoyer les quantites des autres enseignes. #}
+{% for nom, lignes, sous_total in groupes %}
+<section class="bloc">
+    <h2>{{ nom }}</h2>
+    <form method="post"
+          action="{{ url_for('courses.modifier_quantites', code=liste.Code_unique_liste_course) }}">
+        <table class="table-figee table-courses">
+            <colgroup>
+                <col class="col-article"><col class="col-ean">
+                <col class="col-quantite"><col class="col-unites"><col class="col-prix-unitaire">
+                <col class="col-cout"><col class="col-actions">
+            </colgroup>
+            <thead>
+                <tr><th>Article</th><th>EAN</th>
+                    <th class="nombre">Quantite recette</th>
+                    {# Intitule coupe a la main : trop long pour tenir sur une
+                       ligne sans elargir la colonne au-dela du necessaire. #}
+                    <th class="nombre">Quantite d'unite<br>a acheter</th>
+                    <th class="nombre">Prix unitaire</th><th class="nombre">Cout</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for ligne in lignes %}
+                {# Sous-bandeau a chaque changement de rayon. Les articles de base
+                   non ajoutes, ranges en fin de groupe, forment leur propre
+                   rubrique ; une fois ajoutes, ils rejoignent leur rayon. #}
+                {% set rubrique = "Articles de base" if ligne.En_attente else (ligne.Categorie or "Sans categorie") %}
+                {% if loop.changed(rubrique) %}
+                <tr class="sous-bandeau{{ ' base' if ligne.En_attente }}"><th colspan="7">{{ rubrique }}</th></tr>
+                {% endif %}
+                <tr{% if ligne.En_attente %} class="en-attente" title="Article de base : non compte tant qu'il n'est pas ajoute"{% endif %}>
+                    <td>{{ ligne.Libelle }}
+                        {% if ligne.Marque %}<br><small>{{ ligne.Marque }}</small>{% endif %}
+                    </td>                    {# .ean impose deja la petite taille et les chiffres tabulaires #}
+                    <td class="ean">{{ ligne.EAN or '-' }}</td>
+                    <td class="nombre">
+                        <span class="champ-quantite-ligne">
+                            <input type="text" inputmode="decimal"
+                                   name="quantite_{{ ligne.Code_unique_article }}"
+                                   value="{{ ligne.Quantite | quantite }}">
+                            <small>{{ ligne.Unite | unite }}</small>
+                        </span>
+                    </td>
+                    <td class="nombre unites">
+                        {% if ligne.Unites_a_acheter is none %}
+                        <span title="Conditionnement de l'article non renseigne">-</span>
+                        {% else %}
+                        <strong>{{ ligne.Unites_a_acheter }}</strong>
+                        <small>x {{ ligne.Conditionnement | quantite }} {{ ligne.Unite | unite }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="nombre">{{ ligne.Prix_unitaire | euros }}</td>
+                    {# Cout des conditionnements entiers, pas du prorata. #}
+                    <td class="nombre" title="{{ ligne.Unites_a_acheter or '?' }} x {{ ligne.Prix_euros | euros }}">
+                        {{ ligne.Cout | euros }}
+                    </td>
+                    <td class="actions">
+                        <div class="groupe-actions">
+                            {# Bouton du meme formulaire, redirige par formaction :
+                               un <form> imbrique dans un autre est invalide. #}
+                            {% if ligne.En_attente %}
+                            <button class="petit" type="submit" formnovalidate
+                                    formaction="{{ url_for('courses.ajouter_base', code=liste.Code_unique_liste_course, code_article=ligne.Code_unique_article) }}">
+                                Ajouter
+                            </button>
+                            {% else %}
+                            <button class="petit danger" type="submit" formnovalidate
+                                    formaction="{{ url_for('courses.supprimer_article', code=liste.Code_unique_liste_course, code_article=ligne.Code_unique_article) }}">
+                                Retirer
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr><th colspan="5">Sous-total {{ nom }}</th>
+                    <th class="nombre">{{ sous_total | euros }}</th><th></th></tr>
+            </tfoot>
+        </table>
+        <div class="actions-formulaire actions-tableau">
+            <button class="bouton petit" type="submit">Enregistrer les quantites</button>
+        </div>
+    </form>
+</section>
+{% endfor %}
+
+<section class="bloc">
+    <h2>Cout total estime</h2>
+    <p class="total-liste">{{ cout_total | euros }}</p>
+</section>
+{% else %}
+<p class="vide">Cette liste est vide.</p>
+{% endif %}
+
+<section class="bloc">
+    <h2>Ajouter un article</h2>
+    {% set action_ajout = url_for('courses.ajouter_article', code=liste.Code_unique_liste_course) %}
+    {% set libelle_quantite = "Nombre d'articles" %}
+    {% set quantite_en_articles = true %}
+    {% include "_ajout_article.html" %}
+</section>
+
+<section class="bloc">
+    <h2>Envoyer par email</h2>
+    {% if not smtp_pret %}
+    <p class="aide">SMTP non configure : renseignez la section <code>[smtp]</code> de
+       <code>config.ini</code> (ou les variables SMTP_HOST / SMTP_FROM) pour activer l'envoi.</p>
+    {% endif %}
+    <form class="ligne-ajout" method="post"
+          action="{{ url_for('courses.envoyer', code=liste.Code_unique_liste_course) }}">
+        <label>
+            Adresse email
+            {# Pre-remplie depuis [smtp] destinataire, mais restant modifiable. #}
+            <input type="email" name="email" required value="{{ destinataire }}"
+                   placeholder="destinataire@exemple.fr">
+        </label>
+        <button class="bouton" type="submit">Envoyer la liste</button>
+    </form>
+</section>
+{% endblock %}

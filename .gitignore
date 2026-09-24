@@ -1,0 +1,11 @@
+# Secrets (identifiants SMTP)
+config.ini
+
+# Donnees locales : base SQLite, sauvegardes, profil Chrome du kiosk
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

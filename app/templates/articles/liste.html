@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block titre %}Articles - Operation_ninja{% endblock %}
+{% block code_ecran %}ART-3.1{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>Articles</h1>
+    <a class="bouton" href="{{ url_for('articles.nouveau') }}">+ Ajouter un article</a>
+</div>
+
+<form class="recherche" method="get" action="{{ url_for('articles.liste') }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Libelle, marque, categorie, distributeur, EAN, composition...">
+    <button type="submit">Rechercher</button>
+    {% if q %}<a class="lien" href="{{ url_for('articles.liste') }}">Effacer</a>{% endif %}
+</form>
+
+{% if articles %}
+<table class="table-figee table-articles">
+    <colgroup>
+        <col class="col-libelle"><col class="col-marque"><col class="col-categorie">
+        <col class="col-distributeur"><col class="col-prix">
+        <col class="col-quantite"><col class="col-unite"><col class="col-actions">
+    </colgroup>
+    <thead>
+        <tr>
+            <th>Libelle</th><th>Marque</th><th>Categorie</th>
+            <th>Distributeur</th><th class="nombre">Prix</th>
+            <th class="nombre">Quantite</th><th>Unite</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for article in articles %}
+        <tr>
+            {# Coupe geree en CSS : le texte occupe toute la largeur de la
+               colonne, le libelle complet reste visible au survol. #}
+            <td class="libelle-coupe" title="{{ article.Libelle }}"><strong>{{ article.Libelle }}</strong></td>
+            <td>{{ article.Marque or '-' }}</td>
+            <td><small>{{ article.Categorie or '-' }}</small></td>
+            <td>{{ article.Distributeur or '-' }}</td>            <td class="nombre">{{ article.Prix_euros | euros }}</td>
+            <td class="nombre">{{ article.Quantite | quantite if article.Quantite else '-' }}</td>
+            {# symbole court (gr, ml, u) plutot que le libelle complet #}
+            <td>{{ UNITES[article.Unite][1] if article.Unite in UNITES else '-' }}</td>
+            <td class="actions">
+                <div class="groupe-actions">
+                    <a class="bouton petit" href="{{ url_for('articles.modifier', code=article.Code_unique_article) }}">Ouvrir</a>
+                    <a class="bouton petit neutre" href="{{ url_for('articles.nouveau', copie=article.Code_unique_article) }}">Copier</a>
+                    <form method="post" action="{{ url_for('articles.supprimer', code=article.Code_unique_article) }}"
+                          onsubmit="return confirm('Supprimer {{ article.Libelle }} ?');">
+                        <button class="petit danger" type="submit">Supprimer</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="vide">Aucun article{% if q %} ne correspond a cette recherche{% endif %}.</p>
+{% endif %}
+{% endblock %}

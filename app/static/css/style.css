@@ -1,0 +1,424 @@
+/* Operation_ninja - feuille de style unique.
+   Cibles tactiles larges : l'IHM tourne en Chrome kiosk. */
+
+:root {
+    --fond: #f4f5f7;
+    --carte: #ffffff;
+    --bordure: #d8dbe0;
+    --texte: #1f2430;
+    --texte-doux: #5c6472;
+    --accent: #2f6f4f;
+    --accent-clair: #e7f1ec;
+    --danger: #a83232;
+    --succes: #2f6f4f;
+    --rayon: 10px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    color: var(--texte);
+    background: var(--fond);
+}
+
+/* --- Barre de navigation --- */
+.barre {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px;
+    padding: 14px 28px;
+    background: var(--texte);
+    color: #fff;
+}
+
+.marque {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+}
+
+.barre nav { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.barre nav a {
+    padding: 10px 16px;
+    border-radius: var(--rayon);
+    color: #e7eaf0;
+    text-decoration: none;
+}
+
+.barre nav a:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+
+main { max-width: 1200px; margin: 0 auto; padding: 28px 20px 40px; }
+
+/* Repere de version et d'ecran, aligne a droite sous le contenu. Discret :
+   il sert au support, pas a la lecture courante. */
+.pied {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 24px;
+    text-align: right;
+    font-size: 12px;
+    color: var(--texte-doux);
+}
+
+h1 { margin: 0; font-size: 28px; }
+h2 { margin: 0 0 14px; font-size: 20px; }
+h3 { margin: 22px 0 8px; font-size: 17px; color: var(--texte-doux); }
+
+.entete {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.code { font-family: Consolas, monospace; font-size: 13px; color: var(--texte-doux); }
+.aide { color: var(--texte-doux); font-size: 14px; }
+.vide { padding: 18px; background: var(--carte); border-radius: var(--rayon); color: var(--texte-doux); }
+.requis { color: var(--danger); }
+
+/* --- Messages flash --- */
+.messages { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 8px; }
+
+.message {
+    padding: 12px 16px;
+    border-radius: var(--rayon);
+    border-left: 5px solid var(--accent);
+    background: var(--accent-clair);
+}
+
+.message.erreur { border-left-color: var(--danger); background: #fbeaea; }
+
+/* --- Ecran d'accueil --- */
+.tuiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+}
+
+.tuile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 170px;
+    padding: 24px;
+    background: var(--carte);
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+    text-decoration: none;
+    color: var(--texte);
+}
+
+.tuile:hover { border-color: var(--accent); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); }
+.tuile-titre { font-size: 20px; font-weight: 700; }
+.tuile-compteur { font-size: 40px; font-weight: 700; color: var(--accent); }
+.tuile-detail { font-size: 14px; color: var(--texte-doux); margin-top: auto; }
+.tuile.secondaire { min-height: 120px; }
+
+/* --- Blocs --- */
+.bloc {
+    margin-bottom: 26px;
+    padding: 22px;
+    background: var(--carte);
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+}
+
+/* --- Tableaux --- */
+table { width: 100%; border-collapse: collapse; background: var(--carte); border-radius: var(--rayon); overflow: hidden; }
+th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--bordure); vertical-align: top; }
+thead th { background: #eceef2; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+tfoot th { background: #eceef2; }
+.nombre { text-align: right; white-space: nowrap; }
+.centre { text-align: center; }
+.coche { color: var(--succes); font-size: 18px; font-weight: 700; }
+td small { color: var(--texte-doux); }
+/* Pas de display:flex ici : une cellule de tableau en flex quitte la mise en
+   page du tableau et sa bordure basse se decale des que la ligne s'agrandit. */
+/* La cellule reste une cellule de tableau (sinon sa bordure basse se decale) :
+   c'est un conteneur interne qui aligne les boutons. En flex, l'espacement
+   vient de gap seul, sans les blancs parasites entre balises. */
+.actions { white-space: nowrap; }
+
+.groupe-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+.groupe-actions form { margin: 0; }
+.groupe-actions .bouton, .groupe-actions button { min-width: 88px; text-align: center; }
+
+/* --- Tableaux a colonnes figees ---
+   Reglages partages par les ecrans Articles et Liste de courses, pour que
+   les deux se lisent pareil. Les largeurs, elles, dependent de la largeur
+   disponible et sont declarees plus bas, ecran par ecran. */
+.table-figee { table-layout: fixed; }
+.table-figee th, .table-figee td { padding: 12px 10px; overflow-wrap: anywhere; }
+/* En-tetes sur une seule ligne, donc plus petits que le texte des cellules.
+   Chaque largeur de colonne est calee sur son en-tete : a 11px gras, le plus
+   long ("DISTRIBUTEUR") fait ~90px, plus les 2x10px de padding. */
+.table-figee thead th { font-size: 11px; letter-spacing: 0; white-space: nowrap; }
+/* Un EAN de 14 chiffres tient sur une ligne : a 12px en chiffres tabulaires
+   il fait ~92px, pour 95px de place utile (115px - 2x10px de padding). */
+.table-figee td.ean {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow-wrap: normal;
+}
+
+/* Boutons d'action resserres : 3 x 66px + 2 x 8px de gap + 20px de padding
+   de cellule = 234px, ce qui tient dans la colonne actions la plus etroite. */
+.table-figee td.libelle-coupe { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.table-figee .groupe-actions { gap: 8px; }
+.table-figee .groupe-actions .bouton,
+.table-figee .groupe-actions button { min-width: 66px; padding: 6px 6px; font-size: 12px; }
+
+/* --- Ecran Articles ---
+   320 + 70 + 90 + 110 + 115 + 75 + 80 + 60 + 240 = 1160px, soit la largeur
+   utile de main (1200px - 2x20px de padding). Sous 1160px, les colonnes se
+   reduisent proportionnellement. */
+.table-articles .col-libelle { width: 385px; }
+.table-articles .col-marque { width: 120px; }
+.table-articles .col-categorie { width: 90px; }
+.table-articles .col-distributeur { width: 110px; }
+.table-articles .col-prix { width: 75px; }
+.table-articles .col-quantite { width: 80px; }
+.table-articles .col-unite { width: 60px; }
+.table-articles .col-actions { width: 240px; }
+
+/* --- Ecran Liste de courses ---
+   Le tableau est dans un .bloc, donc 44px plus etroit : 336 + 90 + 115 + 130
+   + 130 + 115 + 100 + 100 = 1116px (1200px - 2x20px de main - 2x22px de
+   .bloc). Categorie et EAN reprennent les largeurs de l'ecran Articles ;
+   le libelle absorbe le reste. */
+.table-courses .col-article { width: 426px; }
+/* Sous-bandeau de rayon : separe les categories sans occuper une colonne. */
+.table-courses tr.sous-bandeau th {
+    padding: 6px 10px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(47, 111, 79, 0.08);
+    text-align: left;
+}
+/* Articles de base : couleurs inversees pour marquer la rubrique a part. */
+.table-courses tr.sous-bandeau.base th { color: #fff; background: var(--accent); }
+/* Article de base non ajoute : grise, hors cout, sauf le bouton Ajouter. */
+.table-courses tr.en-attente td:not(.actions) { opacity: 0.55; }
+.table-courses .col-ean { width: 115px; }
+.table-courses .col-quantite { width: 130px; }
+.table-courses .col-unites { width: 130px; }
+.table-courses .col-prix-unitaire { width: 115px; }
+.table-courses .col-cout { width: 100px; }
+.table-courses .col-actions { width: 100px; }
+
+/* Nombre de conditionnements a prendre : le chiffre porte l'information, le
+   rappel du conditionnement passe en second plan, sur la ligne du dessous.
+   Cible la seule cellule concernee : ailleurs, un <small> mis en block
+   casserait l'alignement (le champ quantite et son unite, par exemple). */
+.table-courses td.unites strong { font-size: 18px; }
+.table-courses td.unites small { display: block; font-size: 11px; }
+
+/* --- Formulaires --- */
+.formulaire { display: grid; gap: 16px; max-width: 760px; }
+.colonnes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+/* Le libelle du champ occupe une seule cellule de la grille : sans cela,
+   une mention comme l'asterisque des champs obligatoires part a la ligne. */
+label { display: grid; gap: 6px; font-weight: 600; font-size: 14px; }
+label > .intitule { display: block; }
+label.court { max-width: 200px; }
+
+/* Cases a cocher alignees sur une ligne, case et texte cote a cote.
+   [hidden] explicite : le display du label l'emporterait sinon. */
+.cases-a-cocher { display: flex; gap: 24px; }
+label.case { display: flex; align-items: center; gap: 8px; }
+label.case[hidden] { display: none; }
+/* Beaucoup de cases (categories de recette) : retour a la ligne autorise. */
+.groupe-cases { border: none; margin: 0; padding: 0; }
+.groupe-cases legend { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.groupe-cases .cases-a-cocher { flex-wrap: wrap; gap: 8px 20px; }
+.groupe-cases label.case { font-weight: 400; }
+/* Classement par glisser-deposer (ecran Distributeurs). */
+.zones-classement {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px; align-items: start;
+}
+/* min-height : une zone vide doit rester une cible de depot visible. */
+.liste-classement {
+    list-style: none; margin: 6px 0 0; padding: 6px; min-height: 60px;
+    border: 1px dashed var(--bordure); border-radius: var(--rayon);
+}
+.liste-classement.retirees li { opacity: 0.7; text-decoration: line-through; }
+.liste-classement li {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 4px; padding: 8px 12px;
+    background: #fff; border: 1px solid var(--bordure); border-radius: var(--rayon);
+    cursor: grab; user-select: none;
+}
+.liste-classement li.en-deplacement { opacity: 0.4; }
+.liste-classement .poignee { color: var(--bordure); font-size: 18px; }
+.liste-classement .rang { min-width: 26px; font-variant-numeric: tabular-nums; }
+/* Categorie affichee dans une liste. */
+.etiquette {
+    display: inline-block; margin: 2px 4px 2px 0; padding: 1px 8px;
+    font-size: 12px; border: 1px solid var(--bordure); border-radius: 10px;
+}
+
+input[type="text"], input[type="search"], input[type="number"], input[type="email"],
+textarea, select {
+    padding: 11px 12px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 400;
+    color: var(--texte);
+    background: #fff;
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+}
+
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+textarea { resize: vertical; }
+
+.actions-formulaire { display: flex; align-items: center; gap: 14px; }
+/* Boutons places sous un tableau : sans cette marge ils collent au bandeau
+   de sous-total, qui a son propre fond gris. */
+.actions-tableau { margin-top: 18px; }
+
+.recherche { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
+.recherche input[type="search"] { flex: 1 1 280px; }
+
+.ligne-ajout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--bordure);
+}
+
+.ligne-ajout label { flex: 1 1 200px; }
+.ligne-ajout label.large { flex: 3 1 360px; }
+/* Bloc enchaine sur le precedent : pas de filet separateur, mais un vrai
+   espace pour ne pas coller les deux rangees de listes deroulantes. */
+.ligne-ajout.sans-bordure { margin-top: 26px; padding-top: 0; border-top: none; }
+
+/* Recette > "Ajouter un article" : la largeur naturelle d'un <select> suit
+   celle de son option la plus longue. Le filtre Distributeur masquant des
+   options, la liste retrecissait sur Otera et la quantite se decalait. Les
+   deux champs sont donc figes, cales sur le cas le plus large :
+   800 + 14 + 180 + 14 + ~93px de bouton = 1101px, pour 1116px utiles dans le
+   bloc (1200px - 2x20px de main - 2x22px de .bloc).
+   min-width: 0 est indispensable : sans lui, la largeur mini d'un element
+   flex reste sa largeur de contenu et flex-basis est ignore. */
+.ligne-ajout label.champ-article { flex: 0 0 800px; min-width: 0; }
+/* Largeur calee sur l'intitule (unite comprise), garde sur une seule ligne. */
+.ligne-ajout label.champ-quantite { flex: 0 0 auto; min-width: 180px; }
+.champ-quantite .intitule { white-space: nowrap; }
+.champ-article select, .champ-quantite input { width: 100%; }
+
+/* Liste de courses : quantite editable directement dans le tableau, avec son
+   unite a cote. inline-flex pour rester dans l'alignement a droite de .nombre. */
+.champ-quantite-ligne { display: inline-flex; align-items: baseline; gap: 6px; }
+.champ-quantite-ligne input {
+    width: 80px;
+    padding: 6px 8px;
+    font-size: 14px;
+    text-align: right;
+}
+
+.total-liste { margin: 0; font-size: 28px; font-weight: 700; color: var(--accent); }
+
+/* --- Boutons --- */
+.bouton, button {
+    padding: 11px 18px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 600;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--rayon);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.bouton:hover, button:hover { filter: brightness(1.08); }
+.petit { padding: 7px 12px; font-size: 13px; }
+.danger { background: var(--danger); }
+.neutre { background: var(--texte-doux); }
+.lien { color: var(--accent); font-weight: 600; text-decoration: none; }
+.lien:hover { text-decoration: underline; }
+
+/* --- Listes a cocher et resultats --- */
+.cases { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 8px; }
+.cases.compactes { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+.cases label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+    background: #fff;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.cases label:hover { border-color: var(--accent); }
+
+/* Creation d'une liste de courses : la case a cocher tient la largeur, la
+   quantite de la recette se cale a droite. Le libelle de la quantite n'est
+   pas une carte, on neutralise donc le cadre de .cases label. */
+.cases.avec-quantite li { display: flex; align-items: stretch; gap: 12px; }
+.cases.avec-quantite li > label:first-child { flex: 1 1 auto; }
+
+.cases.avec-quantite .quantite-recette {
+    display: grid;
+    align-content: center;
+    gap: 4px;
+    flex: 0 0 130px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: default;
+}
+
+.cases.avec-quantite .quantite-recette input { width: 100%; }
+.cases.avec-quantite .quantite-recette input:disabled {
+    background: #f0f1f4;
+    color: var(--texte-doux);
+}
+.cases input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+.cases span { display: grid; }
+.cases small { color: var(--texte-doux); }
+
+.resultats { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+
+.resultats li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+}
+
+.resultats a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.resultats small { color: var(--texte-doux); }

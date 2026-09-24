@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titre %}Accueil - Operation_ninja{% endblock %}
+{% block code_ecran %}ACC-1{% endblock %}
+
+{% block contenu %}
+<h1>Accueil</h1>
+
+<div class="tuiles">
+    <a class="tuile" href="{{ url_for('recettes.liste') }}">
+        <span class="tuile-titre">Recettes</span>
+        <span class="tuile-compteur">{{ compteurs.recettes }}</span>
+        <span class="tuile-detail">Ajouter, modifier, supprimer, lister</span>
+    </a>
+    <a class="tuile" href="{{ url_for('articles.liste') }}">
+        <span class="tuile-titre">Articles</span>
+        <span class="tuile-compteur">{{ compteurs.articles }}</span>
+        <span class="tuile-detail">Ajouter, modifier, supprimer, lister</span>
+    </a>
+    <a class="tuile" href="{{ url_for('courses.liste') }}">
+        <span class="tuile-titre">Listes de courses</span>
+        <span class="tuile-compteur">{{ compteurs.listes }}</span>
+        <span class="tuile-detail">Creer depuis des recettes, envoyer par email</span>
+    </a>
+    <a class="tuile" href="{{ url_for('distributeurs.liste') }}">
+        <span class="tuile-titre">Distributeurs</span>
+        <span class="tuile-compteur">{{ compteurs.distributeurs }}</span>
+        <span class="tuile-detail">Enseignes et ordre des rayons</span>
+    </a>
+</div>
+{% endblock %}

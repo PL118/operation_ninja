@@ -1,0 +1,46 @@
+; Copiez ce fichier en "config.ini" et completez-le.
+; Toute valeur peut aussi etre fournie par variable d'environnement
+; (ON_HOTE, ON_PORT, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD,
+;  SMTP_FROM, SMTP_TO, SMTP_TLS, SMTP_VERIFY_CERT), qui a priorite sur
+; ce fichier.
+;
+; N'ecrivez PAS un vrai mot de passe ici si le projet est partage :
+; utilisez SMTP_PASSWORD en variable d'environnement.
+
+[serveur]
+hote = 127.0.0.1
+port = 5000
+
+; ---------------------------------------------------------------------------
+; Envoi via Brevo (gratuit jusqu'a 300 mails par jour).
+; Identifiant et cle : Brevo > Parametres > SMTP & API > onglet SMTP >
+; "Generer une nouvelle cle SMTP". L'identifiant affiche par Brevo est
+; souvent de la forme xxxxxx@smtp-brevo.com : le recopier tel quel.
+; L'expediteur doit etre ajoute et confirme dans Brevo > Expediteurs.
+; ---------------------------------------------------------------------------
+[smtp]
+hote = smtp-relay.brevo.com
+port = 587
+utilisateur =
+; Cle SMTP : ni le mot de passe du compte Brevo, ni une cle API.
+mot_de_passe =
+expediteur = mon.adresse@exemple.fr
+; Destinataire pre-rempli dans le formulaire d'envoi.
+destinataire = mon.adresse@exemple.fr
+tls = oui
+verifier_certificat = oui
+
+; ---------------------------------------------------------------------------
+; Variante Gmail : hote = smtp.gmail.com, port = 587, utilisateur et
+; expediteur = l'adresse Gmail (Gmail refuse tout autre From), mot de passe
+; = "mot de passe d'application" de 16 lettres genere sur
+; https://myaccount.google.com/apppasswords. Exige la validation en deux
+; etapes avec une methode autre qu'une cle de securite (telephone ou
+; Authenticator), et un compte sans Protection Avancee.
+;
+; Variante Proton Mail : une adresse @proton.me ne peut passer que par
+; Proton Mail Bridge (abonnement payant, application lancee sur ce poste),
+; les jetons SMTP de Proton exigeant un domaine personnalise.
+;   hote = 127.0.0.1, port = 1025, identifiants fournis par Bridge,
+;   verifier_certificat = non (certificat auto-signe sur 127.0.0.1).
+; ---------------------------------------------------------------------------

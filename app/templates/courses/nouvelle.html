@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block titre %}Nouvelle liste de courses - Operation_ninja{% endblock %}
+{% block code_ecran %}LIC-4.2{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>{{ "Copier une liste de courses" if copie else "Creer une liste de courses" }}</h1>
+    <a class="lien" href="{{ url_for('courses.liste') }}">Retour aux listes</a>
+</div>
+
+{% if copie %}
+<p class="aide">Copie de la liste du <strong>{{ modele.Date_edition }}</strong> :
+   ses {{ modele.Nb_articles }} article(s) seront repris a l'identique.
+   Vous pouvez en plus cocher des recettes, leurs quantites viendront s'ajouter.</p>
+{% elif recettes %}
+<p class="aide">Cochez une ou plusieurs recettes et indiquez combien de fois vous
+   les realiserez. Les quantites d'un meme article present dans plusieurs
+   recettes sont additionnees, puis regroupees par distributeur.</p>
+{% endif %}
+
+{% if recettes or copie %}
+<form method="post">
+    {% if copie %}<input type="hidden" name="copie" value="{{ copie }}">{% endif %}
+
+    {% if recettes %}
+    <!-- Recherche cote navigateur : la page n'est pas rechargee, les cases
+         deja cochees et les quantites saisies sont conservees. -->
+    <div class="recherche">
+        <input type="search" id="recherche-recette" autocomplete="off"
+               placeholder="Rechercher une recette par libelle...">
+        <span class="aide" id="resume-selection" aria-live="polite"></span>
+    </div>
+
+    <ul class="cases avec-quantite" id="liste-recettes">
+        {% for recette in recettes %}
+        <li data-libelle="{{ recette.Libelle | lower }}">
+            <label>
+                <input type="checkbox" name="recettes" value="{{ recette.Code_unique_recette }}"
+                       data-personnes="{{ recette.Nombre_personnes }}">
+                <span>
+                    <strong>{{ recette.Libelle }}</strong>
+                    <small>{{ recette.Nombre_personnes }} personne(s) - {{ recette.Nb_articles }} article(s)</small>
+                </span>
+            </label>
+            <!-- Quantite = nombre de fois que la recette sera realisee.
+                 Desactivee tant que la case n'est pas cochee : un champ
+                 disabled n'est pas poste, le serveur retombe alors sur 1. -->
+            <label class="quantite-recette">
+                <span class="intitule">Quantite</span>
+                <input type="text" inputmode="decimal" value="1" disabled
+                       name="quantite_{{ recette.Code_unique_recette }}">
+            </label>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <p class="vide" id="aucune-recette" hidden>Aucune recette ne correspond a cette recherche.</p>
+    {% endif %}
+
+    <div class="actions-formulaire">
+        <button class="bouton" type="submit">{{ "Creer la copie" if copie else "Creer la liste" }}</button>
+        <a class="lien" href="{{ url_for('courses.liste') }}">Annuler</a>
+    </div>
+</form>
+
+{% if recettes %}
+<script>
+(function () {
+    var recherche = document.getElementById('recherche-recette');
+    var lignes = Array.prototype.slice.call(
+        document.querySelectorAll('#liste-recettes li'));
+    var aucune = document.getElementById('aucune-recette');
+    var resume = document.getElementById('resume-selection');
+
+    function champ(ligne) { return ligne.querySelector('.quantite-recette input'); }
+    function case_(ligne) { return ligne.querySelector('input[type="checkbox"]'); }
+
+    function resumer() {
+        var recettes = 0, repas = 0;
+        lignes.forEach(function (ligne) {
+            var coche = case_(ligne);
+            if (!coche.checked) return;
+            recettes += 1;
+            // Meme tolerance que le serveur : la virgule vaut point decimal.
+            var quantite = parseFloat(champ(ligne).value.replace(',', '.'));
+            if (!isFinite(quantite) || quantite <= 0) quantite = 0;
+            repas += quantite * parseFloat(coche.dataset.personnes || 1);
+        });
+        resume.textContent = recettes
+            ? recettes + ' recette(s) cochee(s) - ' + (Math.round(repas * 100) / 100)
+              + ' repas'
+            : '';
+    }
+
+    function filtrer() {
+        var terme = recherche.value.trim().toLowerCase();
+        var visibles = 0;
+        lignes.forEach(function (ligne) {
+            // Une recette cochee reste visible : sinon on la perdrait de vue
+            // tout en l'envoyant quand meme au serveur.
+            var retenue = !terme || case_(ligne).checked
+                || ligne.dataset.libelle.indexOf(terme) !== -1;
+            ligne.hidden = !retenue;
+            if (retenue) visibles += 1;
+        });
+        aucune.hidden = visibles > 0;
+    }
+
+    lignes.forEach(function (ligne) {
+        case_(ligne).addEventListener('change', function () {
+            champ(ligne).disabled = !this.checked;
+            if (this.checked) champ(ligne).value = champ(ligne).value || '1';
+            resumer();
+        });
+        champ(ligne).addEventListener('input', resumer);
+    });
+
+    recherche.addEventListener('input', filtrer);
+    filtrer();
+    resumer();
+}());
+</script>
+{% endif %}
+
+{% else %}
+<p class="vide">Aucune recette disponible.
+   <a href="{{ url_for('recettes.nouvelle') }}">Creer une recette</a>.</p>
+{% endif %}
+{% endblock %}

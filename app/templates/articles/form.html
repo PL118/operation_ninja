@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block titre %}{{ "Nouvel" if creation else "Modifier" }} article - Operation_ninja{% endblock %}
+{% block code_ecran %}ART-3.2{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>{{ "Ajouter un article" if creation else "Modifier l'article" }}</h1>
+    <a class="lien" href="{{ url_for('articles.liste') }}">Retour a la liste</a>
+</div>
+
+{% if copie %}
+<p class="aide">Copie de <strong>{{ copie }}</strong>. Ajustez les valeurs puis
+   enregistrez : un nouvel article sera cree, l'original reste inchange.</p>
+{% endif %}
+
+<form class="formulaire" method="post">
+    <label>
+        <span class="intitule">Libelle <span class="requis">*</span></span>
+        <input type="text" name="libelle" maxlength="50" required
+               value="{{ article.Libelle if article else '' }}">
+    </label>
+
+    {# Nouvel article : alimentaire coche par defaut. #}
+    {% set alimentaire = article.Alimentaire if article else 1 %}
+    <div class="cases-a-cocher">
+        <label class="case">
+            <input type="checkbox" name="alimentaire" id="case-alimentaire" value="1"
+                   {% if alimentaire %}checked{% endif %}>
+            Alimentaire
+        </label>
+        <label class="case" id="bloc-base" {% if not alimentaire %}hidden{% endif %}>
+            <input type="checkbox" name="base" value="1"
+                   {% if article and article.Base %}checked{% endif %}>
+            Base
+        </label>
+    </div>
+    <script>
+    // Base n'est proposee que pour un article alimentaire.
+    document.getElementById('case-alimentaire').addEventListener('change', function () {
+        document.getElementById('bloc-base').hidden = !this.checked;
+    });
+    </script>
+
+    <div class="colonnes">
+        <label>
+            Marque
+            <input type="text" name="marque" maxlength="50"
+                   value="{{ article.Marque or '' if article else '' }}">
+        </label>
+
+        <label>
+            <span class="intitule">Distributeur <span class="requis">*</span></span>
+            {% set enseigne = article.Distributeur if article else '' %}
+            <select name="distributeur" id="choix-distributeur" required>
+                <option value="">-- choisir --</option>
+                {% for nom in DISTRIBUTEURS %}
+                <option value="{{ nom }}" {% if nom == enseigne %}selected{% endif %}>{{ nom }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            <span class="intitule">Categorie (rayon) <span class="requis">*</span></span>
+            {% set rayon = article.Categorie if article else '' %}
+            <select name="categorie" id="choix-categorie" required>
+                <option value="">-- choisir --</option>
+                {% for nom in CATEGORIES %}
+                <option value="{{ nom }}" {% if nom == rayon %}selected{% endif %}>{{ nom }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+    <script>
+    // Seules les categories retenues par le distributeur choisi sont
+    // proposees, dans son ordre de rayons (ecran Distributeurs).
+    (function () {
+        var rayons = {{ RAYONS | tojson }};
+        var distributeur = document.getElementById('choix-distributeur');
+        var categorie = document.getElementById('choix-categorie');
+        var placeholder = categorie.options[0];
+
+        function filtrer() {
+            var courante = categorie.value;
+            var permises = rayons[distributeur.value] || [];
+            categorie.innerHTML = '';
+            placeholder.textContent = distributeur.value ? '-- choisir --' : "-- choisir d'abord un distributeur --";
+            categorie.appendChild(placeholder);
+            permises.forEach(function (nom) {
+                categorie.appendChild(new Option(nom, nom));
+            });
+            categorie.value = permises.indexOf(courante) !== -1 ? courante : '';
+        }
+
+        distributeur.addEventListener('change', filtrer);
+        filtrer();
+    })();
+    </script>
+
+    <label>
+        Description
+        <textarea name="description" maxlength="255" rows="2">{{ article.Description or '' if article else '' }}</textarea>
+    </label>
+
+    <div class="colonnes">
+        <label>
+            EAN (13 ou 14 caracteres)
+            <input type="text" name="ean" maxlength="14" pattern="[0-9]{13,14}"
+                   value="{{ article.EAN if article and article.EAN else '' }}">
+        </label>
+
+        <label>
+            Prix en euros
+            <input type="text" inputmode="decimal" name="prix"
+                   value="{{ '%.2f'|format(article.Prix_euros|float) if article else '0.00' }}">
+        </label>
+
+        <label>
+            <span class="intitule">Quantite pour ce prix <span class="requis">*</span></span>
+            <input type="text" inputmode="decimal" name="quantite" required placeholder="ex. 1000"
+                   value="{{ article.Quantite | quantite if article and article.Quantite else '' }}">
+        </label>
+
+        <label>
+            <span class="intitule">Unite <span class="requis">*</span></span>
+            <select name="unite" required>
+                <option value="">-- choisir --</option>
+                {% set choisie = article.Unite if article else '' %}
+                {% for code, (libelle, symbole) in UNITES.items() %}
+                <option value="{{ code }}" {% if code == choisie %}selected{% endif %}>
+                    {{ libelle }} ({{ symbole }})
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <p class="aide">Prix et quantite vont ensemble : 1,20 EUR pour 1000 grammes.
+       Le cout des recettes et des listes de courses en est deduit. Sans
+       quantite, le prix est compte pour une unite.</p>
+
+    <label>
+        Composition
+        <textarea name="composition" maxlength="255" rows="2">{{ article.Composition or '' if article else '' }}</textarea>
+    </label>
+
+    <div class="actions-formulaire">
+        <button class="bouton" type="submit">Enregistrer</button>
+        <a class="lien" href="{{ url_for('articles.liste') }}">Annuler</a>
+    </div>
+</form>
+{% endblock %}

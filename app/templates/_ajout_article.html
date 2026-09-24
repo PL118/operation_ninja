@@ -1,0 +1,189 @@
+{# Ajout d'un article avec recherche et filtres, partage par la fiche
+   recette (REC-2.3) et la liste de courses (LIC-4.3). Attend :
+   catalogue, marques, action_ajout (URL du POST) et libelle_quantite. #}
+{% if catalogue %}
+<!-- Les filtres agissent dans le navigateur : la page n'est pas rechargee,
+     l'ecran ne remonte pas et la position de lecture est conservee. -->
+<div class="ligne-ajout">
+    <label>
+        Rechercher
+        <input type="search" id="filtre-texte" placeholder="Libelle..." autocomplete="off">
+    </label>
+    <label>
+        Distributeur
+        <select id="filtre-distributeur" data-champ="distributeur">
+            <option value="">Tous</option>
+            {% for nom in DISTRIBUTEURS %}<option value="{{ nom }}">{{ nom }}</option>{% endfor %}
+        </select>
+    </label>
+    <label>
+        Marque
+        <select id="filtre-marque" data-champ="marque">
+            <option value="">Toutes</option>
+            {% for nom in marques %}<option value="{{ nom }}">{{ nom }}</option>{% endfor %}
+        </select>
+    </label>
+    <label>
+        Categorie
+        <select id="filtre-categorie" data-champ="categorie">
+            <option value="">Toutes</option>
+            {% for nom in CATEGORIES %}<option value="{{ nom }}">{{ nom }}</option>{% endfor %}
+        </select>
+    </label>
+    <button class="bouton neutre" type="button" id="reinitialiser-filtres">Tout afficher</button>
+</div>
+
+<form class="ligne-ajout sans-bordure" method="post"
+      action="{{ action_ajout }}">
+    <label class="large champ-article">
+        <span class="intitule">Article
+            <span id="compteur-articles">({{ catalogue | length }} disponible(s))</span>
+        </span>
+        <select name="code_article" id="choix-article" required>
+            <option value="">-- choisir --</option>
+            {% for article in catalogue %}
+            <option value="{{ article.Code_unique_article }}"
+                    data-distributeur="{{ article.Distributeur or '' }}"
+                    data-marque="{{ article.Marque or '' }}"
+                    data-categorie="{{ article.Categorie or '' }}"
+                    data-unite="{{ article.Unite | unite if article.Unite else '' }}">
+                {{- article.Libelle }}
+                {%- if article.Quantite %} ({{ article.Quantite | quantite }} {{ article.Unite | unite }})
+                {%- elif article.Unite %} ({{ article.Unite | unite }})
+                {%- endif -%}
+            </option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="champ-quantite">
+        {# quantite_en_articles : saisie en nombre de paquets, l'unite de
+           mesure n'a alors pas lieu d'etre affichee. #}
+        <span class="intitule">{{ libelle_quantite }}
+            {%- if not quantite_en_articles %} <span id="unite-quantite"></span>{% endif %}</span>
+        <input type="text" inputmode="decimal" name="quantite" required
+               placeholder="{{ '1' if quantite_en_articles else '0' }}">
+    </label>
+    <button class="bouton" type="submit">Ajouter</button>
+</form>
+
+<p class="vide" id="aucun-article" hidden>Aucun article ne correspond a ces filtres.</p>
+
+<script>
+(function () {
+    var choix = document.getElementById('choix-article');
+    var compteur = document.getElementById('compteur-articles');
+    var aucun = document.getElementById('aucun-article');
+    // Listes de reference : les options retirees par un filtre doivent
+    // pouvoir revenir quand on elargit la selection. appendChild deplace
+    // un noeud, il ne le copie pas, d'ou ces tableaux conserves a part.
+    var placeholder = choix.options[0];
+    var toutes = Array.prototype.slice.call(choix.options, 1);
+
+    var filtres = ['distributeur', 'marque', 'categorie'].map(function (nom) {
+        var select = document.getElementById('filtre-' + nom);
+        return {
+            select: select,
+            champ: nom,
+            placeholder: select.options[0],
+            valeurs: Array.prototype.slice.call(select.options, 1)
+        };
+    });
+
+    // Articles correspondant aux filtres actifs, en ignorant
+    // eventuellement l'un d'entre eux.
+    // Recherche libre sur le texte de l'option, sans tenir compte des
+    // majuscules ni des accents.
+    var texte = document.getElementById('filtre-texte');
+    function normaliser(chaine) {
+        return chaine.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    }
+
+    function correspondances(ignore) {
+        return toutes.filter(function (option) {
+            return filtres.every(function (filtre) {
+                return filtre === ignore || !filtre.select.value
+                    || option.dataset[filtre.champ] === filtre.select.value;
+            });
+        });
+    }
+
+    // Une valeur devenue inatteignable est abandonnee. Plusieurs passes :
+    // liberer un filtre peut en rendre un autre impossible a son tour.
+    function purger() {
+        filtres.forEach(function (filtre) {
+            if (!filtre.select.value) return;
+            var atteignable = correspondances(filtre).some(function (option) {
+                return option.dataset[filtre.champ] === filtre.select.value;
+            });
+            if (!atteignable) filtre.select.value = '';
+        });
+    }
+
+    // Chaque liste de filtre ne propose que ce qui reste atteignable
+    // compte tenu des deux autres.
+    function rafraichirFiltres() {
+        filtres.forEach(function (filtre) {
+            var disponibles = {};
+            correspondances(filtre).forEach(function (option) {
+                var valeur = option.dataset[filtre.champ];
+                if (valeur) disponibles[valeur] = true;
+            });
+
+            var courant = filtre.select.value;
+            filtre.select.innerHTML = '';
+            filtre.select.appendChild(filtre.placeholder);
+            filtre.valeurs.forEach(function (option) {
+                if (disponibles[option.value]) filtre.select.appendChild(option);
+            });
+            filtre.select.value = disponibles[courant] ? courant : '';
+        });
+    }
+
+    function rafraichir() {
+        filtres.forEach(purger);
+        rafraichirFiltres();
+
+        // La recherche ne restreint que la liste des articles : elle ne
+        // doit pas faire abandonner un filtre deja choisi.
+        var recherche = normaliser(texte.value.trim());
+        var retenues = correspondances(null).filter(function (option) {
+            return !recherche || normaliser(option.text).indexOf(recherche) !== -1;
+        });
+        var selection = choix.value;
+        choix.innerHTML = '';
+        choix.appendChild(placeholder);
+        retenues.forEach(function (option) { choix.appendChild(option); });
+        choix.value = retenues.some(function (o) { return o.value === selection; })
+            ? selection : '';
+
+        compteur.textContent = '(' + retenues.length + ' disponible(s))';
+        aucun.hidden = retenues.length > 0;
+        afficherUnite();
+    }
+
+    // Unite de l'article choisi, rappelee a cote de la quantite.
+    var uniteQuantite = document.getElementById('unite-quantite');
+    function afficherUnite() {
+        if (!uniteQuantite) return;
+        var option = choix.options[choix.selectedIndex];
+        var unite = option && option.dataset.unite;
+        uniteQuantite.textContent = unite ? '(en ' + unite + ')' : '';
+    }
+    choix.addEventListener('change', afficherUnite);
+
+    filtres.forEach(function (filtre) {
+        filtre.select.addEventListener('change', rafraichir);
+    });
+    texte.addEventListener('input', rafraichir);
+    document.getElementById('reinitialiser-filtres').addEventListener('click', function () {
+        texte.value = '';
+        filtres.forEach(function (filtre) { filtre.select.value = ''; });
+        rafraichir();
+    });
+
+    rafraichir();
+})();
+</script>
+{% else %}
+<p class="aide">Creez d'abord des <a href="{{ url_for('articles.nouveau') }}">articles</a>.</p>
+{% endif %}

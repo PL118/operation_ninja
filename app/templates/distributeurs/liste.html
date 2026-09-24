@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titre %}Distributeurs - Operation_ninja{% endblock %}
+{% block code_ecran %}DIS-6.1{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>Distributeurs</h1>
+    <a class="bouton" href="{{ url_for('distributeurs.nouveau') }}">+ Ajouter un distributeur</a>
+</div>
+
+{% if distributeurs %}
+<table>
+    <thead>
+        <tr>
+            <th>Libelle</th><th class="nombre">Articles</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for distributeur in distributeurs %}
+        <tr>
+            <td><strong>{{ distributeur.Libelle }}</strong></td>
+            <td class="nombre">{{ distributeur.Nb_articles }}</td>
+            <td class="actions">
+                <div class="groupe-actions">
+                    <a class="bouton petit" href="{{ url_for('distributeurs.modifier', code=distributeur.Code_unique_distributeur) }}">Ouvrir</a>
+                    <a class="bouton petit neutre" href="{{ url_for('distributeurs.nouveau', copie=distributeur.Code_unique_distributeur) }}">Copier</a>
+                    <form method="post" action="{{ url_for('distributeurs.supprimer', code=distributeur.Code_unique_distributeur) }}"
+                          onsubmit="return confirm('Supprimer {{ distributeur.Libelle }} ?');">
+                        <button class="petit danger" type="submit">Supprimer</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="vide">Aucun distributeur pour le moment.</p>
+{% endif %}
+{% endblock %}

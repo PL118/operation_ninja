@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titre %}Recettes - Operation_ninja{% endblock %}
+{% block code_ecran %}REC-2.1{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>Recettes</h1>
+    <a class="bouton" href="{{ url_for('recettes.nouvelle') }}">+ Ajouter une recette</a>
+</div>
+
+<form class="recherche" method="get" action="{{ url_for('recettes.liste') }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Libelle ou description...">
+    {# Filtre applique des le choix, sans passer par le bouton. #}
+    <select name="categorie" onchange="this.form.submit()" aria-label="Categorie">
+        <option value="">Toutes les categories</option>
+        {% for nom in CATEGORIES_RECETTE %}
+        <option value="{{ nom }}" {% if nom == categorie %}selected{% endif %}>{{ nom }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Rechercher</button>
+    {% if q or categorie %}<a class="lien" href="{{ url_for('recettes.liste') }}">Effacer</a>{% endif %}
+</form>
+
+{% if recettes %}
+<table>
+    <thead>
+        <tr>
+            <th>Libelle</th><th>Categories</th><th class="nombre">Personnes</th>
+            <th class="nombre">Articles</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for recette in recettes %}
+        <tr>
+            <td><strong>{{ recette.Libelle }}</strong>
+                {% if recette.Description %}<br><small>{{ recette.Description }}</small>{% endif %}
+            </td>
+            <td>{% for nom in recette.Categories | categories_recette %}<span class="etiquette">{{ nom }}</span>{% else %}-{% endfor %}</td>
+            <td class="nombre">{{ recette.Nombre_personnes }}</td>
+            <td class="nombre">{{ recette.Nb_articles }}</td>
+            <td class="actions">
+                <div class="groupe-actions">
+                    <a class="bouton petit" href="{{ url_for('recettes.modifier', code=recette.Code_unique_recette) }}">Ouvrir</a>
+                    <a class="bouton petit neutre" href="{{ url_for('recettes.nouvelle', copie=recette.Code_unique_recette) }}">Copier</a>
+                    <form method="post" action="{{ url_for('recettes.supprimer', code=recette.Code_unique_recette) }}"
+                          onsubmit="return confirm('Supprimer {{ recette.Libelle }} ?');">
+                        <button class="petit danger" type="submit">Supprimer</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="vide">Aucune recette{% if q or categorie %} ne correspond a cette recherche{% endif %}.</p>
+{% endif %}
+{% endblock %}

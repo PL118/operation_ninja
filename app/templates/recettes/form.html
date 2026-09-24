@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titre %}Nouvelle recette - Operation_ninja{% endblock %}
+{% block code_ecran %}REC-2.2{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>Ajouter une recette</h1>
+    <a class="lien" href="{{ url_for('recettes.liste') }}">Retour a la liste</a>
+</div>
+
+{% if copie %}
+<p class="aide">Copie de <strong>{{ copie_libelle }}</strong>. Ses articles seront
+   repris a l'identique. Ajustez la fiche puis enregistrez : une nouvelle
+   recette sera creee, l'originale reste inchangee.</p>
+{% else %}
+<p class="aide">Les articles se saisissent a l'etape suivante, une fois la recette creee.</p>
+{% endif %}
+
+<form class="formulaire" method="post">
+    {% if copie %}
+    <input type="hidden" name="copie" value="{{ copie }}">
+    <input type="hidden" name="copie_libelle" value="{{ copie_libelle }}">
+    {% endif %}
+    <label>
+        <span class="intitule">Libelle <span class="requis">*</span></span>
+        <input type="text" name="libelle" maxlength="50" required
+               value="{{ recette.Libelle if recette else '' }}">
+    </label>
+    {% include "recettes/_categories.html" %}
+
+    <label>
+        Description
+        <textarea name="description" maxlength="255" rows="3">{{ recette.Description or '' if recette else '' }}</textarea>
+    </label>
+
+    <label class="court">
+        <span class="intitule">Nombre de personnes <span class="requis">*</span></span>
+        <input type="number" name="nombre_personnes" min="1" step="1" required
+               value="{{ recette.Nombre_personnes if recette else 4 }}">
+    </label>
+
+    <div class="actions-formulaire">
+        <button class="bouton" type="submit">{{ "Creer la copie" if copie else "Creer la recette" }}</button>
+        <a class="lien" href="{{ url_for('recettes.liste') }}">Annuler</a>
+    </div>
+</form>
+{% endblock %}

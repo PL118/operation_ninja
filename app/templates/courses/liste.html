@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titre %}Listes de courses - Operation_ninja{% endblock %}
+{% block code_ecran %}LIC-4.1{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>Listes de courses</h1>
+    <a class="bouton" href="{{ url_for('courses.nouvelle') }}">+ Creer depuis des recettes</a>
+</div>
+
+{% if listes %}
+<table>
+    <thead>
+        <tr><th>Date d'edition</th>
+            <th class="nombre">Articles</th>
+            <th class="nombre">Cout estime</th>
+            <th class="centre">Liste emise</th><th></th></tr>
+    </thead>
+    <tbody>
+        {% for liste in listes %}
+        <tr>
+            <td>{{ liste.Date_edition }}</td>
+            <td class="nombre">{{ liste.Nb_articles }}</td>
+            <td class="nombre">{{ liste.Cout_total | euros }}</td>
+            <td class="centre">{% if liste.Emise %}<span class="coche" title="Envoyee par email">&#10004;</span>{% endif %}</td>
+            <td class="actions">
+                <div class="groupe-actions">
+                    <a class="bouton petit" href="{{ url_for('courses.detail', code=liste.Code_unique_liste_course) }}">Ouvrir</a>
+                    <a class="bouton petit neutre" href="{{ url_for('courses.nouvelle', copie=liste.Code_unique_liste_course) }}">Copier</a>
+                    <form method="post" action="{{ url_for('courses.supprimer', code=liste.Code_unique_liste_course) }}"
+                          onsubmit="return confirm('Supprimer la liste du {{ liste.Date_edition }} ?');">
+                        <button class="petit danger" type="submit">Supprimer</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="vide">Aucune liste de courses pour le moment.</p>
+{% endif %}
+{% endblock %}

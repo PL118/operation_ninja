@@ -1,0 +1,199 @@
+Nom : Operation_ninja
+Version  : V1
+OS : windows
+Herbegement : local
+Code : python, html, css
+IHM :  Chrome en kiosk (affichage standard, pas de mode pleine écran)
+Data : base de données en sql
+    Tables:
+        - Recettes
+            > Code_unique_recette / (clé primaire) / Composition de la clé REC_YYMMDDHHMMSS
+            > Libelle / alphanumérique / 50 caractères / obligatoire
+            > Description / alphanumérique / 255 caractères
+            > Nombre_personnes / entier / obligatoire
+            > Categories / alphanumérique / 255 caractères / cumulables, séparées par ";"
+                . Petit-dejeuner / Brunch / Entree / Plat / Dessert / Aperitif /
+                  Boisson / Sauce / Accompagnement / Snack / Sucre / Sale
+
+        - Recette_Article (table de liaison : une recette contient N articles)
+            > Code_unique_recette / (clé primaire composée) / clé étrangère vers Recettes
+            > Code_unique_article / (clé primaire composée) / clé étrangère vers Articles
+            > Quantite / décimal / 10,2 / obligatoire
+            > Suppression d'une recette : suppression en cascade de ses lignes
+            > Suppression d'un article utilisé : interdite
+
+        - Articles
+            > Code_unique_article / (clé primaire) / Composition de la clé ART_YYMMDDHHMMSS
+            > Libelle / alphanumérique / 50 caractères / obligatoire
+            > Marque / alphanumérique / 50 caractères
+            > Description / alphanumérique / 255 caractères
+            > Distributeur / alphanumérique / 50 caractères / libellé d'un
+              distributeur de la table Distributeurs / obligatoire
+            > Categorie / alphanumérique / 50 caractères / liste fermée / obligatoire
+              (limitée aux catégories retenues par le distributeur choisi)
+            > EAN / alphanumérique / 13 ou 14 caractères
+            > Prix_euros / décimal / 10,2
+            > Quantite / décimal / 10,2 / conditionnement correspondant au prix / obligatoire
+            > Composition / alphanumérique / 255 caractères
+            > Unite / alphanumérique / 10 caractères / liste fermée / obligatoire
+                . gramme (g)
+                . millilitre (ml)
+                . piece (u)
+            > Alimentaire / booléen (0/1) / 1 par défaut
+            > Base / booléen (0/1) / uniquement si Alimentaire / 0 par défaut
+
+        - Distributeurs
+            > Code_unique_distributeur / (clé primaire) / Composition de la clé DIS_YYMMDDHHMMSS
+            > Libelle / alphanumérique / 50 caractères / obligatoire / unique
+            > Renommage reporté sur Articles.Distributeur et Liste_course.Distributeur
+            > Suppression interdite si des articles l'utilisent
+
+        - Distributeur_Categorie (ordre des rayons propre à chaque distributeur)
+            > Code_unique_distributeur / (clé primaire composée) / clé étrangère vers Distributeurs
+            > Categorie / (clé primaire composée) / alphanumérique / 50 caractères
+            > Ordre / entier / rang de parcours du magasin
+            > Retenue / booléen (0/1) / 0 = rayon absent chez ce distributeur
+            > Suppression d'un distributeur : suppression en cascade de ses lignes
+
+        - Liste_course
+            > Code_unique_liste_course / (clé primaire) / Composition de la clé LIC_YYMMDDHHMMSS
+            > Date_edition / date
+            > Distributeur / colonne conservée pour les listes anciennes, plus
+              alimentée : les articles sont regroupés par leur propre
+              distributeur à l'écran comme dans l'email.
+            > Emise / booléen (0/1) / passe à 1 après un envoi par email réussi
+
+        - Liste_course_Article (table de liaison : une liste contient N articles)
+            > Code_unique_liste_course / (clé primaire composée) / clé étrangère vers Liste_course
+            > Code_unique_article / (clé primaire composée) / clé étrangère vers Articles
+            > Quantite / décimal / 10,2
+            > Ajoute / booléen (0/1) / article de base : 0 tant qu'il n'est pas
+              ajouté aux achats (affiché mais hors coût et hors email)
+            > Suppression d'une liste : suppression en cascade de ses lignes
+            > Suppression d'un article utilisé : interdite
+
+
+    Remarques :
+        - Moteur SQLite (fichier data/operation_ninja.db), créé au premier démarrage.
+        - SQLite n'a pas de type DECIMAL : prix et quantités sont stockés en REAL
+          et arrondis à 2 décimales à la saisie et à l'affichage.
+        - Prix_euros et Quantite vont ensemble : le prix vaut pour la quantité
+          de conditionnement (ex. 1,20 EUR les 1000 g). Le coût d'une recette
+          ou d'une liste utilise donc Prix_euros / Quantite. Quantite vide ou
+          nulle : le prix est compté pour une unité (sécurité, ce cas ne peut
+          plus être créé depuis que Quantite est obligatoire).
+        - Les champs obligatoires sont contrôlés côté application (message
+          d'erreur clair et saisie conservée) et côté navigateur (attribut
+          required). La base, elle, ne pose pas de NOT NULL : le rendre
+          obligatoire en base imposerait de reconstruire la table.
+        - Unités (db.UNITES), catégories d'article (db.CATEGORIES) et
+          catégories de recette (db.CATEGORIES_RECETTE) sont des référentiels
+          déclarés côté application, qui valide la saisie. La base ne contraint
+          que la longueur, pour pouvoir faire évoluer les listes sans
+          reconstruire la table.
+        - Les distributeurs sont tenus en base (table Distributeurs) et gérés
+          depuis l'écran N°5. Carrefour et Otera y ont été repris au démarrage.
+        - Catégories d'article = rayons de supermarché, ordre par défaut :
+          Fruits / Légumes / Boucherie / Volaille / Poissonnerie /
+          Charcuterie et traiteur / Crèmerie et oeufs / Fromagerie /
+          Boulangerie et pâtisserie / Épicerie salée / Épicerie sucrée /
+          Conserves et bocaux / Pâtes, riz et féculents / Condiments et sauces /
+          Petit-déjeuner / Apéritif et snacks / Surgelés / Boissons sans alcool /
+          Boissons alcoolisées / Bébé / Hygiène et beauté / Entretien et maison /
+          Animalerie
+          Chaque distributeur a son propre ordre et peut en retirer (écran N°5).
+        - Ajout d'une colonne à une base déjà remplie : la déclarer dans
+          schema.sql (nouvelles installations) ET dans db.COLONNES_AJOUTEES
+          (bases existantes, mises à jour au démarrage sans perte de données).
+        - Les migrations plus lourdes (renommage de tables, scission de
+          catégorie, amorçage des distributeurs) sont des fonctions de db.py
+          appelées par db.initialiser(), sans effet si déjà appliquées.
+
+Programme :
+    5 écrans principaux (code écran affiché en pied de page : "Version : V1 - XXX-n.n") :
+
+    N°1 - Ecran d'accueil (ACC-1)
+        > Accès aux recettes
+        > Accès aux articles
+        > Accès aux listes de courses
+        > Accès aux distributeurs
+
+    N°2 - Ecran de gestion des recettes (REC-2.1 liste, REC-2.2 création, REC-2.3 fiche)
+        - Gestion des recettes
+            > Ajouter une recette
+            > Ouvrir / modifier une recette
+            > Copier une recette (articles et catégories repris)
+            > Supprimer une recette
+            > Lister les recettes, avec leurs catégories
+            > Filtrer par texte et par catégorie (menu déroulant)
+            > Ajouter un article : recherche libre + filtres distributeur,
+              marque, catégorie ; quantité saisie dans l'unité de l'article
+
+    N°3 - Ecran de gestion des articles (ART-3.1 liste, ART-3.2 fiche)
+        - Gestion des articles
+            > Ajouter un article
+            > Ouvrir / modifier un article
+            > Copier un article
+            > Supprimer un article
+            > Lister les articles (sans colonne EAN, libellé coupé en CSS)
+            > Cases Alimentaire / Base (Base visible si Alimentaire coché)
+
+    N°4 - Ecran de gestion des listes de courses (LIC-4.1 liste, LIC-4.2 création, LIC-4.3 détail)
+        - Gestion des listes de courses
+            > Créer une liste de courses à partir d'une ou plusieurs recettes
+            > Ajouter un article (même recherche et filtres que la recette,
+              saisie en nombre d'articles, convertie en quantité)
+            > Retirer un article de la liste de courses
+            > Articles regroupés par distributeur, puis par catégorie
+              (sous-bandeaux) dans l'ordre des rayons du distributeur
+            > Articles de base : rubrique à part en fin de distributeur
+              (sous-bandeau en couleurs inversées), bouton "Ajouter" pour les
+              passer dans les achats ; "Retirer" les y renvoie
+            > Lister les listes de courses, coche "Liste emise"
+            > Envoyer par email la liste de courses à une adresse email
+
+    N°5 - Ecran de gestion des distributeurs (DIS-6.1 liste, DIS-6.2 fiche)
+        - Gestion des distributeurs
+            > Ajouter un distributeur
+            > Ouvrir / modifier un distributeur
+            > Copier un distributeur (ordre des rayons repris)
+            > Supprimer un distributeur (refusé s'il est utilisé)
+            > Classer les catégories par glisser-déposer (ordre des rayons)
+            > Retirer des catégories par glisser-déposer vers la zone
+              "Catégories retirées"
+
+Imports :
+    Dépendances externes (pip install flask waitress) :
+        - flask / serveur web + templates Jinja2 pour les 5 écrans HTML/CSS
+        - waitress / serveur WSGI pour Windows (remplace le serveur de dev Flask)
+
+    Bibliothèque standard :
+        - sqlite3 / base de données SQL locale (fichier data/operation_ninja.db)
+        - smtplib / envoi de la liste de courses par email
+        - email.message.EmailMessage / construction du message email
+        - datetime / génération des clés REC_/ART_/LIC_/DIS_ + YYMMDDHHMMSS
+        - subprocess / lancement de Chrome en --kiosk
+        - pathlib / gestion des chemins de fichiers
+        - os / lecture des identifiants SMTP en variables d'environnement
+        - configparser / fichier de configuration applicatif
+
+Historique :
+    V0 -> V1
+        - "Ingrédient" renommé "Article" partout : tables Articles,
+          Recette_Article, Liste_course_Article, codes ING_ -> ART_,
+          écrans ING -> ART (données existantes converties au démarrage)
+        - Écran de recherche (RCH-5) supprimé
+        - Articles : cases Alimentaire / Base ; liste sans EAN, libellé et
+          marque élargis ; bouton "Modifier" renommé "Ouvrir"
+        - Recettes : catégories cumulables, affichage et filtre en liste ;
+          choix d'article avec recherche libre, libellé + conditionnement,
+          unité rappelée à côté de la quantité
+        - Listes de courses : coche "Liste emise", colonne "Quantite recette",
+          ajout d'article filtré et saisi en nombre d'articles, tri par
+          catégorie selon l'ordre du distributeur avec sous-bandeaux,
+          articles de base hors achats tant qu'ils ne sont pas ajoutés
+        - Nouvel écran Distributeurs (tables Distributeurs et
+          Distributeur_Categorie) : ordre et retrait des rayons par
+          glisser-déposer, catégories proposées à l'article filtrées
+        - Catégorie "Fruits et légumes" scindée en "Fruits" et "Légumes"
+          (articles existants passés en "Légumes")

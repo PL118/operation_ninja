@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block titre %}{{ "Nouveau" if creation else "Modifier" }} distributeur - Operation_ninja{% endblock %}
+{% block code_ecran %}DIS-6.2{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>{{ "Ajouter un distributeur" if creation else "Modifier le distributeur" }}</h1>
+    <a class="lien" href="{{ url_for('distributeurs.liste') }}">Retour a la liste</a>
+</div>
+
+{% if copie %}
+<p class="aide">Copie de <strong>{{ copie }}</strong>. Ajustez le libelle et l'ordre
+   des rayons puis enregistrez : un nouveau distributeur sera cree.</p>
+{% endif %}
+
+<form class="formulaire" method="post">
+    <label>
+        <span class="intitule">Libelle <span class="requis">*</span></span>
+        <input type="text" name="libelle" maxlength="50" required value="{{ libelle }}">
+    </label>
+
+    <p class="aide">Glissez-deposez les categories pour les classer dans l'ordre
+       de parcours du magasin. Deposez dans « Categories retirees » celles que
+       ce distributeur ne propose pas : elles ne seront plus proposees pour ses
+       articles.</p>
+    {# Chaque ligne porte un champ cache dont le nom depend de la zone ou elle
+       se trouve ("categories" ou "retirees") ; l'ordre poste suit l'affichage. #}
+    <div class="zones-classement">
+        <div>
+            <span class="intitule">Categories retenues (ordre des rayons)</span>
+            <ol class="liste-classement" data-nom="categories">
+                {% for categorie in retenues %}
+                <li draggable="true">
+                    <span class="poignee" aria-hidden="true">&#8801;</span>
+                    <span class="rang"></span>
+                    {{ categorie }}
+                    <input type="hidden" name="categories" value="{{ categorie }}">
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+        <div>
+            <span class="intitule">Categories retirees</span>
+            <ol class="liste-classement retirees" data-nom="retirees">
+                {% for categorie in retirees %}
+                <li draggable="true">
+                    <span class="poignee" aria-hidden="true">&#8801;</span>
+                    <span class="rang"></span>
+                    {{ categorie }}
+                    <input type="hidden" name="retirees" value="{{ categorie }}">
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+
+    <div class="actions-formulaire">
+        <button class="bouton" type="submit">Enregistrer</button>
+        <a class="lien" href="{{ url_for('distributeurs.liste') }}">Annuler</a>
+    </div>
+</form>
+
+<script>
+(function () {
+    var listes = document.querySelectorAll('.liste-classement');
+    var deplace = null;
+
+    // Numerote les retenues, et renomme le champ cache selon la zone.
+    function actualiser() {
+        Array.prototype.forEach.call(listes, function (liste) {
+            Array.prototype.forEach.call(liste.children, function (li, i) {
+                li.querySelector('input').name = liste.dataset.nom;
+                li.querySelector('.rang').textContent =
+                    liste.dataset.nom === 'categories' ? (i + 1) + '.' : '';
+            });
+        });
+    }
+
+    Array.prototype.forEach.call(listes, function (liste) {
+        liste.addEventListener('dragstart', function (e) {
+            deplace = e.target.closest('li');
+            if (!deplace) return;
+            deplace.classList.add('en-deplacement');
+            e.dataTransfer.effectAllowed = 'move';
+            // Firefox n'initie pas le glisser sans donnee associee.
+            e.dataTransfer.setData('text/plain', '');
+        });
+
+        // La ligne survolee s'ecarte : on insere avant ou apres selon la
+        // moitie de la ligne ou se trouve le curseur. Survoler le fond de la
+        // zone (vide ou sous la derniere ligne) place en fin.
+        liste.addEventListener('dragover', function (e) {
+            if (!deplace) return;
+            e.preventDefault();
+            var cible = e.target.closest('li');
+            if (cible === deplace) return;
+            if (!cible) {
+                if (deplace.parentNode !== liste || deplace !== liste.lastElementChild) {
+                    liste.appendChild(deplace);
+                }
+                return;
+            }
+            var boite = cible.getBoundingClientRect();
+            var apres = e.clientY > boite.top + boite.height / 2;
+            liste.insertBefore(deplace, apres ? cible.nextSibling : cible);
+        });
+
+        liste.addEventListener('dragend', function () {
+            if (deplace) deplace.classList.remove('en-deplacement');
+            deplace = null;
+            actualiser();
+        });
+
+        liste.addEventListener('drop', function (e) { e.preventDefault(); });
+    });
+
+    actualiser();
+})();
+</script>
+{% endblock %}

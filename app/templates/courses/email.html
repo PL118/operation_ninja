@@ -1,0 +1,37 @@
+{# Version HTML de l'email de liste de courses. Styles en ligne : la plupart
+   des messageries ignorent les feuilles de style. Pas de prix : pense-bete. #}
+<!DOCTYPE html>
+<html lang="fr">
+<body style="margin:0; padding:16px; font-family:Arial, Helvetica, sans-serif; color:#1f2a24;">
+    <h1 style="margin:0 0 16px; font-size:20px;">Liste de courses du {{ liste.Date_edition }}</h1>
+
+    {% for nom, rayons in groupes %}
+    <h2 style="margin:20px 0 6px; font-size:17px; color:#2f6f4f; border-bottom:2px solid #2f6f4f;">{{ nom }}</h2>
+    <table style="width:100%; max-width:560px; border-collapse:collapse; font-size:15px;">
+        {% for rayon, articles in rayons %}
+        <tr>
+            <td colspan="3" style="padding:8px 8px 4px; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#2f6f4f; background:#eaf1ed;">{{ rayon }}</td>
+        </tr>
+        {% for libelle, a_prendre, detail in articles %}
+        <tr>
+            {# Case dessinee, pas un <input> : les messageries desactivent les
+               formulaires. Sert de repere a cocher au stylo ou mentalement. #}
+            <td style="padding:5px 0 5px 8px; vertical-align:top; width:18px;">
+                <span style="display:inline-block; width:14px; height:14px; margin-top:2px; border:2px solid #2f6f4f; border-radius:3px;"></span>
+            </td>
+            <td style="padding:5px 8px; white-space:nowrap; vertical-align:top;">
+                <strong style="font-size:16px;">{{ a_prendre }}</strong>
+                {% if detail %}<span style="color:#6b7a72; font-size:13px;">{{ detail }}</span>{% endif %}
+            </td>
+            <td style="padding:5px 8px; width:100%;">{{ libelle }}</td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>(liste vide)</p>
+    {% endfor %}
+
+    <p style="margin-top:24px; color:#6b7a72; font-size:12px;">-- Operation_ninja</p>
+</body>
+</html>

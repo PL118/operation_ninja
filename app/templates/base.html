@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titre %}Operation_ninja{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="barre">
+        <a class="marque" href="{{ url_for('accueil.index') }}">Operation_ninja</a>
+        <nav>
+            <a href="{{ url_for('recettes.liste') }}">Recettes</a>
+            <a href="{{ url_for('articles.liste') }}">Articles</a>
+            <a href="{{ url_for('courses.liste') }}">Listes de courses</a>
+            <a href="{{ url_for('distributeurs.liste') }}">Distributeurs</a>        </nav>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="messages">
+                    {% for categorie, message in messages %}
+                        <li class="message {{ categorie }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% block contenu %}{% endblock %}
+    </main>
+
+    <!-- Repere de version et d'ecran, a citer en cas d'anomalie. Le code est
+         pose par chaque template ; "?" signale un ecran qui a oublie le bloc. -->
+    <footer class="pied">Version : {{ VERSION }} - {% block code_ecran %}?{% endblock %}</footer>
+</body>
+</html>

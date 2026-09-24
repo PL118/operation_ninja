@@ -1,0 +1,15 @@
+{# Cases a cocher des categories de recette, partagees par la creation
+   (REC-2.2) et la fiche (REC-2.3). #}
+{% set cochees = (recette.Categories if recette else '') | categories_recette %}
+<fieldset class="groupe-cases">
+    <legend>Categories</legend>
+    <div class="cases-a-cocher">
+        {% for nom in CATEGORIES_RECETTE %}
+        <label class="case">
+            <input type="checkbox" name="categories" value="{{ nom }}"
+                   {% if nom in cochees %}checked{% endif %}>
+            {{ nom }}
+        </label>
+        {% endfor %}
+    </div>
+</fieldset>

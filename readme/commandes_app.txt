@@ -1,0 +1,107 @@
+Operation_ninja - commandes
+
+
+LE PLUS SIMPLE : DOUBLE-CLIQUER SUR lancer.bat
+----------------------------------------------
+Le fichier lancer.bat à la racine du projet fait tout :
+  - il se place dans le bon dossier,
+  - il installe les dépendances si elles manquent,
+  - il démarre l'application avec Chrome en mode kiosk.
+
+Rien d'autre n'est nécessaire. Astuce : clic droit sur lancer.bat >
+"Envoyer vers" > "Bureau (créer un raccourci)" pour l'avoir sous la main.
+
+Les sections ci-dessous décrivent les commandes manuelles équivalentes,
+utiles pour le développement ou en cas de problème.
+
+
+0. SE PLACER DANS LE DOSSIER DU PROJET
+--------------------------------------
+À faire à chaque ouverture de PowerShell, AVANT toute autre commande :
+
+    cd "C:\Users\pauli\OneDrive\Bureau\PickLab\Perso\operation_ninja"
+
+Sans cela, les commandes échouent avec un message du type
+"Could not open requirements file" ou "can't open file 'run.py'".
+
+Raccourci : dans l'explorateur Windows, ouvrir le dossier du projet, puis
+clic droit dans la fenêtre > "Ouvrir dans le terminal". PowerShell démarre
+déjà au bon endroit.
+
+Pour vérifier où l'on se trouve :
+
+    pwd
+
+
+1. INSTALLATION (une seule fois)
+--------------------------------
+
+    python -m pip install -r requirements.txt
+
+Installe Flask et waitress. Tout le reste vient de la bibliothèque standard.
+
+
+2. LANCER LE PROGRAMME
+----------------------
+
+    python run.py
+
+Démarre le serveur local puis ouvre Chrome dans une fenêtre dédiée, sans
+onglets ni barre d'adresse. La fenêtre est déplaçable et redimensionnable
+comme n'importe quelle application. La base de données est créée
+automatiquement au premier démarrage (data/operation_ninja.db).
+
+Fermer la fenêtre arrête le serveur : Alt+F4, ou Ctrl+C dans PowerShell.
+
+
+3. AUTRES MODES D'AFFICHAGE
+---------------------------
+
+    python run.py --plein-ecran
+
+Occupe tout l'écran, sans bordure ni bouton de fermeture (vrai mode kiosk,
+pour une borne). En sortir avec Alt+F4.
+
+    python run.py --serveur-seul
+
+Démarre uniquement le serveur, sans ouvrir Chrome. Ouvrir ensuite
+http://127.0.0.1:5000/ dans n'importe quel navigateur. Ctrl+C pour arrêter.
+Utile pour le développement.
+
+La taille de la fenêtre par défaut (1280x900) se règle dans run.py,
+option --window-size.
+
+
+4. CONFIGURATION (facultatif)
+-----------------------------
+Copier config.ini.exemple en config.ini puis compléter.
+Sert à changer le port du serveur et à activer l'envoi de la liste de courses
+par email.
+
+Le mot de passe SMTP ne doit pas être écrit dans config.ini si le projet est
+partagé. Le passer en variable d'environnement avant de lancer le programme :
+
+    $env:SMTP_PASSWORD = "mot_de_passe_application"
+    python run.py
+
+Autres variables disponibles : ON_HOTE, ON_PORT, SMTP_HOST, SMTP_PORT,
+SMTP_USER, SMTP_FROM, SMTP_TLS. Elles ont priorité sur config.ini.
+
+
+5. SI CHROME N'EST PAS TROUVÉ
+-----------------------------
+Le programme cherche chrome.exe aux emplacements habituels. S'il ne le trouve
+pas, il affiche l'adresse à ouvrir manuellement. Pour forcer le chemin :
+
+    $env:CHROME_PATH = "C:\Chemin\Vers\chrome.exe"
+    python run.py
+
+
+6. REPARTIR D'UNE BASE VIDE
+---------------------------
+Fermer le programme, puis supprimer le fichier de base :
+
+    Remove-Item data\operation_ninja.db
+
+Elle sera recréée vide au prochain démarrage. ATTENTION : toutes les recettes,
+articles et listes de courses sont perdus.
