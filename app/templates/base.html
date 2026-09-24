@@ -13,7 +13,13 @@
             <a href="{{ url_for('recettes.liste') }}">Recettes</a>
             <a href="{{ url_for('articles.liste') }}">Articles</a>
             <a href="{{ url_for('courses.liste') }}">Listes de courses</a>
-            <a href="{{ url_for('distributeurs.liste') }}">Distributeurs</a>        </nav>
+            <a href="{{ url_for('distributeurs.liste') }}">Distributeurs</a>
+            {% if session.connecte %}
+            <form class="deconnexion" method="post" action="{{ url_for('connexion.deconnexion') }}">
+                <button class="lien" type="submit">Deconnexion</button>
+            </form>
+            {% endif %}
+        </nav>
     </header>
 
     <main>

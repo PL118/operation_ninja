@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titre %}Connexion - Operation_ninja{% endblock %}
+{% block code_ecran %}CON-0{% endblock %}
+
+{% block contenu %}
+<div class="entete">
+    <h1>Connexion</h1>
+</div>
+
+<form class="formulaire" method="post">
+    <input type="hidden" name="suivant" value="{{ suivant }}">
+    <label>
+        <span class="intitule">Mot de passe <span class="requis">*</span></span>
+        <input type="password" name="mot_de_passe" required autofocus
+               autocomplete="current-password">
+    </label>
+    <div class="actions-formulaire">
+        <button class="bouton" type="submit">Se connecter</button>
+    </div>
+</form>
+{% endblock %}

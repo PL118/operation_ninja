@@ -20,6 +20,12 @@ DEFAUTS = {
         "hote": "127.0.0.1",
         "port": "5000",
     },
+    # Acces en ligne : sans mot de passe, l'application reste ouverte (usage
+    # local). La cle secrete fixe garde la session ouverte entre redemarrages.
+    "acces": {
+        "mot_de_passe": "",
+        "cle_secrete": "",
+    },
     # Identifiant et cle SMTP : dans config.ini ou l'environnement, jamais ici.
     "smtp": {
         "hote": "",
@@ -42,6 +48,8 @@ DEFAUTS = {
 ENVIRONNEMENT = {
     ("serveur", "hote"): "ON_HOTE",
     ("serveur", "port"): "ON_PORT",
+    ("acces", "mot_de_passe"): "ON_MOT_DE_PASSE",
+    ("acces", "cle_secrete"): "ON_SECRET_KEY",
     ("smtp", "hote"): "SMTP_HOST",
     ("smtp", "port"): "SMTP_PORT",
     ("smtp", "utilisateur"): "SMTP_USER",

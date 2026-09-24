@@ -12,6 +12,16 @@ hote = 127.0.0.1
 port = 5000
 
 ; ---------------------------------------------------------------------------
+; Acces en ligne. Laisser vide en local : pas d'ecran de connexion.
+; En ligne, renseigner les deux (ou ON_MOT_DE_PASSE / ON_SECRET_KEY).
+; Cle secrete : longue chaine aleatoire, par exemple generee avec
+;   python -c "import secrets; print(secrets.token_hex(32))"
+; ---------------------------------------------------------------------------
+[acces]
+mot_de_passe =
+cle_secrete =
+
+; ---------------------------------------------------------------------------
 ; Envoi via Brevo (gratuit jusqu'a 300 mails par jour).
 ; Identifiant et cle : Brevo > Parametres > SMTP & API > onglet SMTP >
 ; "Generer une nouvelle cle SMTP". L'identifiant affiche par Brevo est

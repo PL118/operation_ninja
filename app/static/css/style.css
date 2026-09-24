@@ -54,6 +54,16 @@ body {
 
 .barre nav a:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
 
+/* Bouton de deconnexion : presente comme les liens de la barre. */
+.barre .deconnexion { margin: 0; }
+.barre .deconnexion button {
+    padding: 10px 16px;
+    background: none;
+    color: #e7eaf0;
+    font-weight: normal;
+}
+.barre .deconnexion button:hover { background: rgba(255, 255, 255, 0.14); color: #fff; filter: none; }
+
 main { max-width: 1200px; margin: 0 auto; padding: 28px 20px 40px; }
 
 /* Repere de version et d'ecran, aligne a droite sous le contenu. Discret :
